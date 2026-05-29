@@ -4,9 +4,11 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { SignedOut,SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Button } from "./ui/button";
 
 export default function Header() {
- const path = usePathname()
+  const path = usePathname();
   return (
     <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 text-nowrap">
       {/* Center - Glass Navigation Container */}
@@ -41,6 +43,31 @@ export default function Header() {
             >
               Contact
             </Link>
+
+            <div className="flex items-center gap-3 ml-10 md:ml-20">
+              
+                <SignInButton>
+                  <Button variant="glass" className="hidden sm:flex">Sign In</Button>
+                </SignInButton>
+
+                <SignUpButton>
+                  <Button variant="primary">Get Started</Button>
+                </SignUpButton>
+           
+
+          
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8 rounded-lg border border-white/20",
+                      userButtonPopoverCard:
+                        "shadow-xl backdrop-blur-md bg-slate-900/90 border border-white/20",
+                      userPreviewMainIdentifier: "font-semibold text-white",
+                    },
+                  }}
+                />
+            
+            </div>
           </div>
         )}
       </div>
