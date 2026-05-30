@@ -1,10 +1,10 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { FloatingShapes } from "@/components/floating-shapes";
-import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "../components/theme-provider";
+import { FloatingShapes } from "../components/floating-shapes";
+import { Toaster } from "../components/ui/sonner";
 import { shadesOfPurple } from "@clerk/themes";
-import Header from "@/components/header";
+import Header from "../components/header";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 
@@ -24,7 +24,8 @@ export default function RootLayout({ children }) {
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
-        ></ThemeProvider>
+        >
+        </ThemeProvider>
         <ClerkProvider
          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
             appearance={{
