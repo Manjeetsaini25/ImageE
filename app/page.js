@@ -3,6 +3,9 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import InteractiveStats from "../components/interactive-stats"
+import FeaturesSection from "../components/features";
+import PricingSection from "../components/pricing";
 
 const HeroSection = () => {
   const [textVisible, setTextVisible] = useState(false);
@@ -103,6 +106,9 @@ const App = () => {
   return (
     <div className="pt-36">
       <HeroSection />
+      <InteractiveStats />
+      <FeaturesSection />
+      <PricingSection />
     </div>
   );
 };
