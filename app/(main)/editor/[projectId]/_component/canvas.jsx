@@ -1,15 +1,12 @@
-"use client"
-
-import { useCanvas } from "../../../../../context/context";
-import { api } from "../../../../../convex/_generated/api";
-import { useConvexMutation } from "../../../../../hooks/use-convex-query";
+import { useCanvas } from "@/context/context";
+import { api } from "@/convex/_generated/api";
+import { useConvexMutation } from "@/hooks/use-convex-query";
 import { Canvas, FabricImage } from "fabric";
 import React, { useEffect, useRef, useState } from "react";
 
 function CanvasEditor({ project }) {
   const canvasRef = useRef();
   const containerRef = useRef();
-  const fabricCanvasRef = useRef(null);
   const { canvasEditor, setCanvasEditor, activeTool, onToolChange } =
     useCanvas();
   const [isLoading, setIsLoading] = useState(true);
@@ -28,30 +25,29 @@ function CanvasEditor({ project }) {
     return Math.min(scaleX, scaleY, 1);
   };
 
-useEffect(() => {
-  if (!canvasRef.current || !project) return;
+  useEffect(() => {
+    if (!canvasRef.current || !project || canvasEditor) return;
 
-  if (fabricCanvasRef.current) return;
-
-  let canvas = null;
-
-  const initializeCanvas = async () => {
-    try {
+    const initializeCanvas = async () => {
       setIsLoading(true);
 
       const viewportScale = calculateViewportScale();
-
-      canvas = new Canvas(canvasRef.current, {
+      const canvas = new Canvas(canvasRef.current, {
         width: project.width,
         height: project.height,
         backgroundColor: "#ffffff",
         preserveObjectStacking: true,
         controlsAboveOverlay: true,
         selection: true,
+        hoverCursor: "move",
+        moveCursor: "move",
+        defaultCursor: "default",
+        allowTouchScrolling: false,
+        renderOnAddRemove: true,
+        skipTargetFind: false,
       });
 
-      fabricCanvasRef.current = canvas;
-
+      // Sync both lower and upper canvas layers
       canvas.setDimensions(
         {
           width: project.width * viewportScale,
@@ -62,23 +58,25 @@ useEffect(() => {
 
       canvas.setZoom(viewportScale);
 
+      // High DPI handling (optional, comment if you don’t need)
+      const scaleFactor = window.devicePixelRatio || 1;
+      if (scaleFactor > 1) {
+        canvas.getElement().width = project.width * scaleFactor;
+        canvas.getElement().height = project.height * scaleFactor;
+        canvas.getContext().scale(scaleFactor, scaleFactor);
+      }
+
+      // Load image
       if (project.currentImageUrl || project.originalImageUrl) {
         try {
-          const imageUrl =
-            project.currentImageUrl || project.originalImageUrl;
-
+          const imageUrl = project.currentImageUrl || project.originalImageUrl;
           const fabricImage = await FabricImage.fromURL(imageUrl, {
             crossOrigin: "anonymous",
           });
 
-          const imgAspectRatio =
-            fabricImage.width / fabricImage.height;
-
-          const canvasAspectRatio =
-            project.width / project.height;
-
-          let scaleX;
-          let scaleY;
+          const imgAspectRatio = fabricImage.width / fabricImage.height;
+          const canvasAspectRatio = project.width / project.height;
+          let scaleX, scaleY;
 
           if (imgAspectRatio > canvasAspectRatio) {
             scaleX = project.width / fabricImage.width;
@@ -100,40 +98,43 @@ useEffect(() => {
           });
 
           canvas.add(fabricImage);
-        } catch (err) {
-          console.error("Image load error:", err);
+          canvas.centerObject(fabricImage);
+        } catch (error) {
+          console.error("Error loading project image:", error);
         }
       }
 
+      // Load saved canvas state
       if (project.canvasState) {
         try {
           await canvas.loadFromJSON(project.canvasState);
-        } catch (err) {
-          console.error("Canvas state error:", err);
+          canvas.requestRenderAll();
+        } catch (error) {
+          console.error("Error loading canvas state:", error);
         }
       }
 
+      canvas.calcOffset();
       canvas.requestRenderAll();
-
       setCanvasEditor(canvas);
-    } catch (err) {
-      console.error("Canvas initialization error:", err);
-    } finally {
+
+      setTimeout(() => {
+        // workaround for initial resize issues
+        window.dispatchEvent(new Event("resize"));
+      }, 500);
+
       setIsLoading(false);
-    }
-  };
+    };
 
-  initializeCanvas();
+    initializeCanvas();
 
-  return () => {
-    if (canvas) {
-      canvas.dispose();
-    }
-
-    fabricCanvasRef.current = null;
-    setCanvasEditor(null);
-  };
-}, [project]);
+    return () => {
+      if (canvasEditor) {
+        canvasEditor.dispose();
+        setCanvasEditor(null);
+      }
+    };
+  }, [project]);
 
   const saveCanvasState = async () => {
     if (!canvasEditor || !project) return;
@@ -186,30 +187,26 @@ useEffect(() => {
     }
   }, [canvasEditor, activeTool]);
 
- useEffect(() => {
-  const handleResize = () => {
-    if (!canvasEditor || !project) return;
+  useEffect(() => {
+    const handleResize = () => {
+      if (!canvasEditor || !project) return;
 
-    const newScale = calculateViewportScale();
+      const newScale = calculateViewportScale();
+      canvasEditor.setDimensions(
+        {
+          width: project.width * newScale,
+          height: project.height * newScale,
+        },
+        { backstoreOnly: false }
+      );
+      canvasEditor.setZoom(newScale);
+      canvasEditor.calcOffset();
+      canvasEditor.requestRenderAll();
+    };
 
-    canvasEditor.setDimensions(
-      {
-        width: project.width * newScale,
-        height: project.height * newScale,
-      },
-      { backstoreOnly: false }
-    );
-
-    canvasEditor.setZoom(newScale);
-    canvasEditor.requestRenderAll();
-  };
-
-  window.addEventListener("resize", handleResize);
-
-  return () => {
-    window.removeEventListener("resize", handleResize);
-  };
-}, [canvasEditor, project]);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [canvasEditor, project]);
 
   // Handle automatic tab switching when text is selected
   useEffect(() => {

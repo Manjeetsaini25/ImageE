@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2,Monitor } from "lucide-react";
+import { EditorTopBar } from "./_component/editor-topbar";
+import { EditorSidebar } from "./_component/editor-sidebar";
 
-import { api } from "../../../../convex/_generated/api";
-import { useConvexQuery } from "../../../../hooks/use-convex-query";
-import { CanvasContext } from "../../../../context/context";
+import { api } from "@/convex/_generated/api";
+import { useConvexQuery } from "@/hooks/use-convex-query";
+import { CanvasContext } from "@/context/context";
 
 import CanvasEditor from "./_component/canvas";
 
@@ -26,18 +28,30 @@ export default function EditorPage() {
     projectId,
   });
 
+  
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+          <p className="text-white/70">Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-900 text-white">
-        Project Not Found
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Project Not Found
+          </h1>
+          <p className="text-white/70">
+            The project you're looking for doesn't exist or you don't have
+            access to it.
+          </p>
+        </div>
       </div>
     );
   }
@@ -53,8 +67,52 @@ export default function EditorPage() {
         setProcessingMessage,
       }}
     >
+       {/* Mobile Message - Show on screens smaller than lg (1024px) */}
+      <div className="lg:hidden min-h-screen bg-slate-900 flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <Monitor className="h-16 w-16 text-cyan-400 mx-auto mb-6" />
+          <h1 className="text-2xl font-bold text-white mb-4">
+            Desktop Required
+          </h1>
+          <p className="text-white/70 text-lg mb-2">
+            This editor is only usable on desktop.
+          </p>
+          <p className="text-white/50 text-sm">
+            Please use a larger screen to access the full editing experience.
+          </p>
+        </div>
+      </div>
+
+      {/* Desktop Editor - Show on lg screens and above */}
+      <div className="hidden lg:block min-h-screen bg-slate-900">
+        <div className="flex flex-col h-screen">
+          {processingMessage && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center">
+              <div className="rounded-lg p-6 flex flex-col items-center gap-4">
+                <RingLoader color="#fff" />
+                <div className="text-center">
+                  <p className="text-white font-medium">{processingMessage}</p>
+                  <p className="text-white/70 text-sm mt-1">
+                    Please wait, do not switch tabs or navigate away
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Top Bar */}
+          <EditorTopBar project={project} />
+
+          {/* Main Editor Layout */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar */}
+            <EditorSidebar project={project} />
+
       <div className="h-screen w-screen bg-slate-900 overflow-hidden">
         <CanvasEditor project={project} />
+      </div>
+      </div>
+        </div>
       </div>
     </CanvasContext.Provider>
   );
