@@ -14,9 +14,10 @@ export function usePlanAccess() {
     crop: true,
     adjust: true,
     text: true,
+    background: true,
 
     // Pro-only tools
-    background: isPro,
+    
     ai_extender: isPro,
     ai_edit: isPro,
   };

@@ -15,6 +15,7 @@ import { useCanvas } from "@/context/context";
 import { TextControls } from "./_tools/text";
 import { ResizeControls } from "./_tools/resize";
 import { CropContent } from "./_tools/crop";
+import { BackgroundControls } from "./_tools/background-controls";
 
 const TOOL_CONFIGS = {
   resize: {
