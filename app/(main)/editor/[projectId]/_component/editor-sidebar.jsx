@@ -16,6 +16,7 @@ import { TextControls } from "./_tools/text";
 import { ResizeControls } from "./_tools/resize";
 import { CropContent } from "./_tools/crop";
 import { BackgroundControls } from "./_tools/background-controls";
+import { AIExtenderControls } from "./_tools/ai-extend";
 
 const TOOL_CONFIGS = {
   resize: {

@@ -15,10 +15,11 @@ export function usePlanAccess() {
     adjust: true,
     text: true,
     background: true,
+    ai_extender: true,
 
     // Pro-only tools
     
-    ai_extender: isPro,
+    
     ai_edit: isPro,
   };
 
