@@ -11,7 +11,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "ImageE",
+  title: "Pixxel",
   description: "Ai based Image Editor",
 };
 
